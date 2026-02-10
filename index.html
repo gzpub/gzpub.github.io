@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贵在公开的主页</title>
+    <link rel="icon" type="image/png" href="assets/icon_web.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --text-secondary: #666;
+            --border-color: #e1e8ed;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #34495e;
+            --secondary-color: #5dade2;
+            --accent-color: #ec7063;
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #404040;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", 
+                         "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            padding-top: var(--header-height);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .nav-logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1em;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: var(--bg-color);
+            color: var(--secondary-color);
+        }
+
+        .nav-menu a.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--secondary-color);
+        }
+
+        /* 面包屑导航 */
+        .breadcrumb {
+            padding: 20px 30px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-label {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .breadcrumb a:hover {
+            background: var(--bg-color);
+            color: var(--primary-color);
+        }
+
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        /* 日期时间显示 */
+        .datetime-display {
+            position: fixed;
+            top: calc(var(--header-height) + 20px);
+            right: 30px;
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            z-index: 999;
+        }
+
+        .datetime-display .date {
+            font-size: 0.95em;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .datetime-display .time {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* 左侧悬浮导航栏 */
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            top: var(--header-height);
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--card-bg);
+            box-shadow: var(--shadow-hover);
+            overflow-y: auto;
+            z-index: 998;
+            transition: left 0.3s ease;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-nav {
+            padding: 15px;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 12px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--bg-color);
+            border-left-color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* 侧边栏切换按钮 */
+        .sidebar-toggle {
+            position: fixed;
+            left: 20px;
+            top: calc(var(--header-height) + 20px);
+            width: 50px;
+            height: 50px;
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: var(--shadow-hover);
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+            background: var(--primary-color);
+        }
+
+        .sidebar-toggle.active {
+            background: var(--accent-color);
+        }
+
+        /* 遮罩层 */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: 100%;
+            height: calc(100vh - var(--header-height));
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 997;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .hero-section h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .hero-section p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .content-section {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .content-section p {
+            line-height: 2;
+            margin-bottom: 15px;
+        }
+
+        /* 页脚 */
+        footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+        }
+
+        footer p {
+            margin: 8px 0;
+        }
+
+        footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--secondary-color);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-hover);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 996;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: var(--primary-color);
+            transform: translateY(-5px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .top-nav {
+                padding: 0 15px;
+            }
+
+            .nav-logo {
+                font-size: 1.1em;
+            }
+
+            .nav-logo img {
+                width: 35px;
+                height: 35px;
+            }
+
+            .nav-menu {
+                gap: 10px;
+            }
+
+            .nav-menu a {
+                font-size: 0.85em;
+                padding: 6px 10px;
+            }
+
+            .datetime-display {
+                right: 15px;
+                top: calc(var(--header-height) + 10px);
+                padding: 10px 15px;
+            }
+
+            .datetime-display .date {
+                font-size: 0.8em;
+            }
+
+            .datetime-display .time {
+                font-size: 1.1em;
+            }
+
+            .sidebar-toggle {
+                left: 15px;
+                top: calc(var(--header-height) + 10px);
+                width: 45px;
+                height: 45px;
+            }
+
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .hero-section {
+                padding: 40px 20px;
+            }
+
+            .hero-section h1 {
+                font-size: 2em;
+            }
+
+            .hero-section p {
+                font-size: 1.1em;
+            }
+
+            .content-section {
+                padding: 25px 20px;
+            }
+
+            .content-section h2 {
+                font-size: 1.5em;
+            }
+        }
+
+        /* 滚动条样式 */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/icon_web.png" alt="网站Logo">
+            <span>贵在公开</span>
+        </a>
+        <div class="nav-menu">
+            <a href="index.html" class="active">首页</a>
+            <a href="#about">网站简介</a>
+            <a href="#contact">联系我们</a>
+            <div class="theme-toggle" id="themeToggle" title="切换主题">
+                <svg id="sunIcon" viewBox="0 0 24 24">
+                    <path d="M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z"/>
+                </svg>
+                <svg id="moonIcon" viewBox="0 0 24 24" style="display: none;">
+                    <path d="M10 7C10 10.866 13.134 14 17 14C18.9584 14 20.729 13.1957 21.9995 11.8995C22 11.933 22 11.9665 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C12.0335 2 12.067 2 12.1005 2.00049C10.8043 3.27098 10 5.04157 10 7ZM4 12C4 16.4183 7.58172 20 12 20C15.0583 20 17.7158 18.2839 19.062 15.7621C18.3945 15.9187 17.7035 16 17 16C12.0294 16 8 11.9706 8 7C8 6.29648 8.08133 5.60547 8.2379 4.938C5.71611 6.28423 4 8.9417 4 12Z"/>
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumb-label">你所在的位置</span>
+        <span class="breadcrumb-separator">›</span>
+        <!-- 动态生成的面包屑路径将插入这里 -->
+    </div>
+
+    <!-- 日期时间显示 -->
+    <div class="datetime-display">
+        <div class="date" id="dateDisplay"></div>
+        <div class="time" id="timeDisplay"></div>
+    </div>
+
+    <!-- 侧边栏切换按钮 -->
+    <div class="sidebar-toggle" id="sidebarToggle">☰</div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- 左侧悬浮导航栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>📑 页面导航</h3>
+            <p>快速跳转到各个部分</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#home" data-section="home">🏠 首页</a>
+            <a href="#about" data-section="about">📖 网站简介</a>
+            <a href="#content" data-section="content">📝 主要内容</a>
+            <a href="#contact" data-section="contact">📧 联系我们</a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <section class="hero-section" id="home">
+            <h1>欢迎来到贵在公开</h1>
+            <p>真相与正义的记录者</p>
+        </section>
+
+        <section class="content-section" id="about">
+            <h2>网站简介</h2>
+            <p>贵在公开致力于记录和传播真实的信息，关注社会公平正义，为每一个需要被听见的声音提供平台。</p>
+            <p>我们相信，公开透明是社会进步的基石，真相永远不应该被掩盖。</p>
+        </section>
+
+        <section class="content-section" id="content">
+            <h2>主要内容</h2>
+            <p>本网站收录了多个重要案件的详细报道和分析，包括：</p>
+            <ul style="margin-left: 30px; line-height: 2.2;">
+                <li><a href="zhangzhichaoCASE/张志超案系列新闻报道.html" style="color: var(--secondary-color); text-decoration: none;">张志超案系列新闻报道</a> - 15年冤案平反历程完整记录</li>
+                <li>更多内容持续更新中...</li>
+            </ul>
+        </section>
+
+        <section class="content-section" id="contact">
+            <h2>联系我们</h2>
+            <p>如果您有任何问题、建议或想要分享的信息，欢迎通过以下方式联系我们：</p>
+            <p style="margin-top: 20px;">
+                <strong>邮箱：</strong><a href="mailto:gzpub@outlook.com" style="color: var(--secondary-color);">gzpub@outlook.com</a>
+            </p>
+        </section>
+    </main>
+
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p><strong>贵在公开</strong> - 真相与正义的记录者</p>
+        <p>联系邮箱：<a href="mailto:gzpub@outlook.com">gzpub@outlook.com</a></p>
+        <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">© 2026 贵在公开 版权所有</p>
+    </footer>
+
+    <script>
+        // ==================== 面包屑导航系统 ====================
+        // 定义网站页面结构和路径映射
+        const siteStructure = {
+            'index.html': { name: '主页', path: [] },
+            'about.html': { name: '网站简介', path: ['index.html'] },
+            'contact.html': { name: '联系我们', path: ['index.html'] },
+            // 示例：多级路径
+            // 'category-a.html': { name: 'A', path: ['index.html'] },
+            // 'category-b.html': { name: 'B', path: ['index.html', 'category-a.html'] },
+            // 'category-c.html': { name: 'C', path: ['index.html', 'category-a.html', 'category-b.html'] },
+        };
+
+        // 生成面包屑导航
+        function generateBreadcrumb() {
+            const breadcrumbContainer = document.getElementById('breadcrumb');
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            
+            // 获取当前页面信息
+            const pageInfo = siteStructure[currentPage] || { name: '主页', path: [] };
+            
+            // 清空现有内容（保留标签）
+            const label = breadcrumbContainer.querySelector('.breadcrumb-label');
+            const separator = breadcrumbContainer.querySelector('.breadcrumb-separator');
+            breadcrumbContainer.innerHTML = '';
+            breadcrumbContainer.appendChild(label);
+            breadcrumbContainer.appendChild(separator);
+            
+            // 构建完整路径
+            const fullPath = [...pageInfo.path, currentPage];
+            
+            // 生成面包屑链接
+            fullPath.forEach((page, index) => {
+                const info = siteStructure[page] || { name: page, path: [] };
+                
+                if (index < fullPath.length - 1) {
+                    // 非当前页面，生成可点击链接
+                    const link = document.createElement('a');
+                    link.href = page;
+                    link.textContent = info.name;
+                    link.title = `跳转到 ${info.name}`;
+                    breadcrumbContainer.appendChild(link);
+                    
+                    // 添加分隔符
+                    const sep = document.createElement('span');
+                    sep.className = 'breadcrumb-separator';
+                    sep.textContent = '›';
+                    breadcrumbContainer.appendChild(sep);
+                } else {
+                    // 当前页面，显示为普通文本
+                    const current = document.createElement('span');
+                    current.className = 'breadcrumb-current';
+                    current.textContent = info.name;
+                    breadcrumbContainer.appendChild(current);
+                }
+            });
+        }
+
+        // 页面加载时生成面包屑
+        generateBreadcrumb();
+
+        // ==================== 主题切换功能 ====================
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const html = document.documentElement;
+
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const theme = html.getAttribute('data-theme');
+            const newTheme = theme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        }
+
+        // ==================== 日期时间显示 ====================
+        function updateDateTime() {
+            const now = new Date();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekday = weekdays[now.getDay()];
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('dateDisplay').textContent = `今天是${year}年${month}月${day}日 ${weekday}`;
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // ==================== 侧边栏功能 ====================
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        let autoCollapseTimer = null;
+
+        function showSidebar() {
+            sidebar.classList.add('active');
+            sidebarOverlay.classList.add('active');
+            sidebarToggle.classList.add('active');
+            startAutoCollapseTimer();
+        }
+
+        function hideSidebar() {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            sidebarToggle.classList.remove('active');
+            clearAutoCollapseTimer();
+        }
+
+        function toggleSidebar() {
+            if (sidebar.classList.contains('active')) {
+                hideSidebar();
+            } else {
+                showSidebar();
+            }
+        }
+
+        function startAutoCollapseTimer() {
+            clearAutoCollapseTimer();
+            autoCollapseTimer = setTimeout(() => {
+                hideSidebar();
+            }, 3000);
+        }
+
+        function clearAutoCollapseTimer() {
+            if (autoCollapseTimer) {
+                clearTimeout(autoCollapseTimer);
+                autoCollapseTimer = null;
+            }
+        }
+
+        function resetAutoCollapseTimer() {
+            if (sidebar.classList.contains('active')) {
+                startAutoCollapseTimer();
+            }
+        }
+
+        sidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebar();
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            hideSidebar();
+        });
+
+        sidebar.addEventListener('mousemove', resetAutoCollapseTimer);
+        sidebar.addEventListener('touchstart', resetAutoCollapseTimer);
+        sidebar.addEventListener('scroll', resetAutoCollapseTimer);
+
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                hideSidebar();
+            });
+        });
+
+        // ==================== 返回顶部功能 ====================
+        const backToTop = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+
+            updateActiveSection();
+        });
+        
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // ==================== 侧边栏导航高亮 ====================
+        function updateActiveSection() {
+            const sections = document.querySelectorAll('.hero-section, .content-section');
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+            
+            let currentSection = 'home';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.pageYOffset >= sectionTop) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // ==================== 平滑滚动 ====================
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // ==================== 初始化 ====================
+        updateActiveSection();
+    </script>
+</body>
+</html>
