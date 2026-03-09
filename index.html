@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?dbf97cb7b354bc1d131ee31119bd476c";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贵在公开网</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            overflow: hidden;
+            color: white;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .ui-overlay {
+            position: fixed;
+            z-index: 10;
+        }
+
+        .title {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .home-button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            background: linear-gradient(135deg, #00d9ff, #ff00d9);
+            background-size: 200% 200%;
+            border-radius: 50px;
+            border: 2px solid rgba(0, 217, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+            animation: gradientShift 3s ease infinite;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        .home-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 217, 255, 0.8);
+            border-color: #00d9ff;
+        }
+
+        .home-button:active {
+            transform: scale(0.98);
+        }
+
+        .title h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #00d9ff, #ff00d9, #00ff88);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 5s ease infinite;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+        }
+
+        .title p {
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            width: 280px;
+            z-index: 100;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .control-panel.collapsed {
+            transform: translateX(calc(100% + 20px));
+        }
+
+        .toggle-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 101;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            font-size: 1.5em;
+        }
+
+        .toggle-panel:hover {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: #00d9ff;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .toggle-panel.panel-open {
+            transform: translateX(-300px);
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+
+            .control-panel.collapsed {
+                transform: translateX(calc(100% + 40px));
+            }
+
+            .toggle-panel.panel-open {
+                transform: translateX(calc(-100vw + 70px));
+            }
+
+            .title h1 {
+                font-size: 1.8em;
+            }
+
+            .home-button {
+                font-size: 1.2em;
+                padding: 12px 30px;
+            }
+
+            .instructions {
+                font-size: 0.75em;
+                padding: 10px 15px;
+            }
+
+            .footer {
+                font-size: 0.75em;
+                padding: 8px 15px;
+            }
+        }
+
+        .control-panel h3 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d9ff, #ff00d9);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .mode-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            padding: 10px;
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            background: rgba(0, 217, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85em;
+        }
+
+        .mode-btn:hover {
+            background: rgba(0, 217, 255, 0.3);
+            border-color: #00d9ff;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.4), rgba(255, 0, 217, 0.4));
+            border-color: #00d9ff;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .stats {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .stats div {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .stats span:last-child {
+            color: #00d9ff;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover, .color-option.active {
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 30, 0.8);
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.7);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .instructions span {
+            color: #00d9ff;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 20, 30, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.7);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <button class="toggle-panel panel-open" id="togglePanel">⚙️</button>
+
+    <div class="ui-overlay title">
+        <h1>您好，贵在公开网</h1>
+        <a href="关于王贵平向最高检第五轮第四巡视组邮寄举报材料核实及有关问题确认书.zip" class="home-button">请点这里下载文件</a>
+        <p>请点击上方，下载王贵平的压缩文件哦，文件将留存一周，预期文件将下线。</p>
+    </div>
+
+    <div class="control-panel collapsed" id="controlPanel">
+        <h3>🎛️ 控制面板</h3>
+        
+        <div class="mode-buttons">
+            <button class="mode-btn active" data-mode="attract">🧲 吸引</button>
+            <button class="mode-btn" data-mode="repel">💨 排斥</button>
+            <button class="mode-btn" data-mode="vortex">🌀 漩涡</button>
+            <button class="mode-btn" data-mode="explode">💥 爆炸</button>
+        </div>
+
+        <div class="control-group">
+            <label>粒子数量: <span id="particleCountLabel">500</span></label>
+            <input type="range" id="particleCount" min="100" max="2000" value="500">
+        </div>
+
+        <div class="control-group">
+            <label>力场强度: <span id="forceLabel">50</span></label>
+            <input type="range" id="force" min="10" max="100" value="50">
+        </div>
+
+        <div class="control-group">
+            <label>粒子大小: <span id="sizeLabel">3</span></label>
+            <input type="range" id="size" min="1" max="8" value="3">
+        </div>
+
+        <div class="control-group">
+            <label>连线距离: <span id="lineDistLabel">100</span></label>
+            <input type="range" id="lineDist" min="0" max="200" value="100">
+        </div>
+
+        <div class="control-group">
+            <label>颜色主题</label>
+            <div class="color-picker">
+                <div class="color-option active" style="background: linear-gradient(135deg, #00d9ff, #0066ff)" data-theme="cyber"></div>
+                <div class="color-option" style="background: linear-gradient(135deg, #ff00d9, #ff6600)" data-theme="fire"></div>
+                <div class="color-option" style="background: linear-gradient(135deg, #00ff88, #00d9ff)" data-theme="nature"></div>
+                <div class="color-option" style="background: linear-gradient(135deg, #fff, #888)" data-theme="mono"></div>
+                <div class="color-option" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" data-theme="rainbow"></div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div><span>FPS:</span><span id="fps">60</span></div>
+            <div><span>粒子:</span><span id="activeParticles">500</span></div>
+            <div><span>连线:</span><span id="connections">0</span></div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <span>鼠标移动</span> 控制力场 | <span>点击</span> 产生脉冲 | <span>滚轮</span> 调整范围
+    </div>
+
+    <div class="footer">
+        <img src="assets/icons/icon_gitbbx.png" alt="gitbbx">
+        <span>© 2026 王贵平</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+        let mouse = { x: null, y: null, radius: 150 };
+        let mode = 'attract';
+        let settings = {
+            particleCount: 500,
+            force: 50,
+            size: 3,
+            lineDist: 100,
+            theme: 'cyber'
+        };
+
+        const themes = {
+            cyber: ['#00d9ff', '#0066ff', '#00ffff', '#0099ff'],
+            fire: ['#ff00d9', '#ff6600', '#ffcc00', '#ff3366'],
+            nature: ['#00ff88', '#00d9ff', '#88ff00', '#00ffcc'],
+            mono: ['#ffffff', '#cccccc', '#999999', '#666666'],
+            rainbow: null
+        };
+
+        let lastTime = 0;
+        let frameCount = 0;
+        let fps = 60;
+        let connectionCount = 0;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.baseSize = settings.size;
+                this.size = this.baseSize;
+                this.hue = Math.random() * 360;
+            }
+
+            getColor() {
+                if (settings.theme === 'rainbow') {
+                    return `hsl(${this.hue}, 100%, 60%)`;
+                }
+                const colors = themes[settings.theme];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < mouse.radius) {
+                        const force = (settings.force / 1000) * (1 - dist / mouse.radius);
+                        const angle = Math.atan2(dy, dx);
+
+                        switch (mode) {
+                            case 'attract':
+                                this.vx += Math.cos(angle) * force;
+                                this.vy += Math.sin(angle) * force;
+                                break;
+                            case 'repel':
+                                this.vx -= Math.cos(angle) * force * 2;
+                                this.vy -= Math.sin(angle) * force * 2;
+                                break;
+                            case 'vortex':
+                                this.vx += Math.cos(angle + Math.PI / 2) * force;
+                                this.vy += Math.sin(angle + Math.PI / 2) * force;
+                                break;
+                            case 'explode':
+                                if (dist < 50) {
+                                    this.vx -= Math.cos(angle) * force * 5;
+                                    this.vy -= Math.sin(angle) * force * 5;
+                                }
+                                break;
+                        }
+
+                        this.size = this.baseSize * (1 + (1 - dist / mouse.radius));
+                    } else {
+                        this.size += (this.baseSize - this.size) * 0.1;
+                    }
+                }
+
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+
+                this.hue = (this.hue + 0.5) % 360;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.getColor();
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < settings.particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function drawConnections() {
+            connectionCount = 0;
+            if (settings.lineDist === 0) return;
+
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < settings.lineDist) {
+                        connectionCount++;
+                        const opacity = 1 - dist / settings.lineDist;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        
+                        if (settings.theme === 'rainbow') {
+                            ctx.strokeStyle = `hsla(${particles[i].hue}, 100%, 60%, ${opacity * 0.3})`;
+                        } else {
+                            ctx.strokeStyle = `rgba(0, 217, 255, ${opacity * 0.3})`;
+                        }
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate(currentTime) {
+            frameCount++;
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                document.getElementById('fps').textContent = fps;
+                document.getElementById('connections').textContent = connectionCount;
+            }
+
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.2)';
+            ctx.fillRect(0, 0, width, height);
+
+            drawConnections();
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            if (mouse.x !== null && mouse.y !== null) {
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(0, 217, 255, 0.2)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Event Listeners
+        window.addEventListener('resize', resize);
+
+        canvas.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        canvas.addEventListener('click', () => {
+            particles.forEach(p => {
+                const dx = mouse.x - p.x;
+                const dy = mouse.y - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < mouse.radius * 2) {
+                    const angle = Math.atan2(dy, dx);
+                    const force = (1 - dist / (mouse.radius * 2)) * 10;
+                    p.vx -= Math.cos(angle) * force;
+                    p.vy -= Math.sin(angle) * force;
+                }
+            });
+        });
+
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            mouse.radius = Math.max(50, Math.min(300, mouse.radius - e.deltaY * 0.5));
+        });
+
+        // Control Panel
+        const controlPanel = document.getElementById('controlPanel');
+        const toggleBtn = document.getElementById('togglePanel');
+        let isPanelOpen = false;
+
+        toggleBtn.addEventListener('click', () => {
+            isPanelOpen = !isPanelOpen;
+            controlPanel.classList.toggle('collapsed');
+            toggleBtn.classList.toggle('panel-open');
+            toggleBtn.textContent = isPanelOpen ? '⚙️' : '⚙️';
+        });
+
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mode = btn.dataset.mode;
+            });
+        });
+
+        document.getElementById('particleCount').addEventListener('input', e => {
+            settings.particleCount = parseInt(e.target.value);
+            document.getElementById('particleCountLabel').textContent = settings.particleCount;
+            document.getElementById('activeParticles').textContent = settings.particleCount;
+            initParticles();
+        });
+
+        document.getElementById('force').addEventListener('input', e => {
+            settings.force = parseInt(e.target.value);
+            document.getElementById('forceLabel').textContent = settings.force;
+        });
+
+        document.getElementById('size').addEventListener('input', e => {
+            settings.size = parseInt(e.target.value);
+            document.getElementById('sizeLabel').textContent = settings.size;
+            particles.forEach(p => p.baseSize = settings.size);
+        });
+
+        document.getElementById('lineDist').addEventListener('input', e => {
+            settings.lineDist = parseInt(e.target.value);
+            document.getElementById('lineDistLabel').textContent = settings.lineDist;
+        });
+
+        document.querySelectorAll('.color-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                settings.theme = opt.dataset.theme;
+            });
+        });
+
+        // Initialize
+        resize();
+        initParticles();
+        animate(0);
+    </script>
+</body>
+</html>
